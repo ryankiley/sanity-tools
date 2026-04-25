@@ -36,7 +36,7 @@ node rewrite-captions.mjs              # apply
 
 Scan a local image folder, run each through Claude for title/alt/caption, write a metadata JSON file. Resume-safe (output file is also the resume marker).
 
-Currently hardcoded to `~/Desktop/vsco-export/`; edit the `LOCAL_DIR` const inside if you want to point at a different folder. (A flag-based version is on the consolidation roadmap — see "Pass 2" below.)
+Reads from `~/Desktop/export/` and expects `curation.json` inside it (filenames + dropped list); writes `metadata.json` next to it. Edit the `LOCAL_DIR` const inside if you want to point at a different folder. (A flag-based version is on the consolidation roadmap — see "Pass 2" below.)
 
 ```bash
 node generate-local-metadata.mjs
@@ -64,7 +64,7 @@ node upload-folder.mjs
 
 ### `upload-metadata.mjs`
 
-Patch existing Sanity assets with metadata from a JSON file (no new uploads).
+Patch existing Sanity assets with metadata from a JSON file (no new uploads). Reads `~/Desktop/export/metadata.json` by default — pairs with `generate-local-metadata.mjs` above. 5-way concurrency, resume-safe.
 
 ```bash
 node upload-metadata.mjs

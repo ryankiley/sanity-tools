@@ -9,9 +9,9 @@ const EXTRACT = ["lqip", "palette", "location", "exif"];
 
 const limit = pLimit(5);
 
-const VSCO_DIR = process.env.HOME + "/Desktop/vsco-export";
-const METADATA_FILE = join(VSCO_DIR, "vsco-metadata.json");
-const PROGRESS_FILE = join(VSCO_DIR, "upload-progress.json");
+const LOCAL_DIR = process.env.HOME + "/Desktop/export";
+const METADATA_FILE = join(LOCAL_DIR, "metadata.json");
+const PROGRESS_FILE = join(LOCAL_DIR, "upload-progress.json");
 
 // Category slug → ID map (pre-resolved)
 const CATEGORY_IDS = {
@@ -100,7 +100,7 @@ async function run() {
 
   const todo = metadata.filter((m) => !uploaded.has(m.filename));
   console.log(
-    `\n=== Upload VSCO: ${metadata.length} total, ${uploaded.size} done, ${todo.length} remaining ===\n`
+    `\n=== Upload: ${metadata.length} total, ${uploaded.size} done, ${todo.length} remaining ===\n`
   );
 
   let success = 0;
@@ -108,7 +108,7 @@ async function run() {
 
   const tasks = todo.map((entry) =>
     limit(async () => {
-      const filePath = join(VSCO_DIR, entry.filename);
+      const filePath = join(LOCAL_DIR, entry.filename);
 
       try {
         const imageBuffer = readFileSync(filePath);

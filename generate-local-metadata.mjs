@@ -18,16 +18,16 @@ if (existsSync(envPath)) {
 
 const anthropic = new Anthropic();
 
-const VSCO_DIR = process.env.HOME + "/Desktop/vsco-export";
-const CURATION_FILE = join(VSCO_DIR, "vsco-curation.json");
-const OUTPUT_FILE = join(VSCO_DIR, "vsco-metadata.json");
+const LOCAL_DIR = process.env.HOME + "/Desktop/export";
+const CURATION_FILE = join(LOCAL_DIR, "curation.json");
+const OUTPUT_FILE = join(LOCAL_DIR, "metadata.json");
 
 // Load dropped filenames
 const curation = JSON.parse(readFileSync(CURATION_FILE, "utf8"));
 const droppedSet = new Set(curation.dropped.map((d) => d.filename));
 
 // Get all image files, exclude drops
-const allFiles = readdirSync(VSCO_DIR).filter((f) => {
+const allFiles = readdirSync(LOCAL_DIR).filter((f) => {
   const ext = extname(f).toLowerCase();
   return [".jpg", ".jpeg", ".png"].includes(ext);
 });
@@ -54,7 +54,7 @@ let success = 0;
 let fail = 0;
 
 for (const filename of todo) {
-  const filePath = join(VSCO_DIR, filename);
+  const filePath = join(LOCAL_DIR, filename);
 
   try {
     const imageBuffer = readFileSync(filePath);
