@@ -1,0 +1,17 @@
+{
+  "name": "sanity-tools",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Local batch tooling for the ryankiley.com Sanity dataset (sn138nra/production). Bulk uploads, AI-powered metadata generation, dormant migration scripts.",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@sanity/client": "^7.21.0",
+    "exifr": "^7.1.3",
+    "p-limit": "^7.3.0",
+    "sharp": "^0.34.5"
+  }
+}

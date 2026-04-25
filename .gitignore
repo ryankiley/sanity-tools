@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+
+# Per-script progress / log artefacts (resumability files)
+caption-rewrite-progress.json
+caption-rewrites.json
+upload-progress.json
+
+# OS noise
+.DS_Store
+
+# Markdown is intentionally allowed here (unlike the portfolio repo,
+# which excludes *.md). The README is the authoritative entry point.
