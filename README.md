@@ -69,7 +69,3 @@ Patch existing Sanity assets with metadata from a JSON file (no new uploads). Pa
 ```bash
 node upload-metadata.mjs
 ```
-
-## Roadmap
-
-Collapse the three AI scripts into a single `metadata.mjs` with mode flags (`--mode=fill|rewrite|local`) and the three upload scripts into a single `upload.mjs` with source flags (`--source=curation|folder|metadata-only`). The current shape works fine; the consolidation is just to reduce the number of constants to edit per workflow.
