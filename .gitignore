@@ -9,4 +9,10 @@ caption-rewrite-progress.json
 caption-rewrites.json
 upload-progress.json
 
+# Studio build artefacts and runtime state
+studio/dist/
+studio/.sanity/
+studio/schema.json
+studio/.vercel/
+
 .DS_Store

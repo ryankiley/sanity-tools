@@ -1,6 +1,6 @@
 # sanity-tools
 
-Batch tooling for a [Sanity](https://www.sanity.io) dataset: bulk image uploads + Claude-powered metadata generation. Local-only; nothing here is deployed. Built for a portfolio site running a `media` schema with `category` / `tag` references, but easy to adapt.
+Sanity Studio + batch tooling for a [Sanity](https://www.sanity.io) dataset. The Studio under `studio/` is a real Sanity Studio app (deployed to sanity.studio); the scripts at the root are local-only batch tools (bulk image uploads, Claude-powered metadata generation). Built for a portfolio site running a `media` schema with `category` / `tag` references, but easy to adapt.
 
 ## Setup
 
@@ -88,4 +88,28 @@ Edit `CATEGORY_IDS` and `TAG_IDS` maps at the top of the file before running so 
 
 ```bash
 node upload-metadata.mjs
+```
+
+## Studio
+
+`studio/` is a Sanity Studio (React app) — schema definitions, custom structure, field actions, custom previews. Deployed to sanity.studio via `cd studio && sanity deploy`. Independent `package.json` — install separately:
+
+```bash
+cd studio
+npm install
+npx sanity dev      # local Studio at http://localhost:3333
+npx sanity deploy   # publish to <studioHost>.sanity.studio
+```
+
+### TypeGen for a sibling app
+
+The Studio's `sanity.cli.ts` includes a typegen config that scans your app source for GROQ queries and writes a `.ts` types file. Defaults to a sibling-checkout layout:
+
+- `SANITY_TYPEGEN_PATH` — glob pattern for source files (default: `../../portfolio/{app,server}/**/*.{ts,tsx,vue}`)
+- `SANITY_TYPEGEN_GENERATES` — output path (default: `../../portfolio/types/sanity.types.ts`)
+
+Override via env if your app is checked out elsewhere. Typical invocation from the consuming app's root:
+
+```bash
+cd ../sanity-tools/studio && npx sanity schema extract --path=./schema.json && npx sanity typegen generate
 ```
