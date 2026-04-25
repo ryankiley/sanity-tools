@@ -1,20 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
 import Anthropic from "@anthropic-ai/sdk";
-import { client } from "./_lib/client.mjs";
-
-// Load .env from the repo root (same level as this script).
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envContent = readFileSync(resolve(__dirname, ".env"), "utf8");
-for (const line of envContent.split("\n")) {
-  const eq = line.indexOf("=");
-  if (eq > 0) {
-    const key = line.slice(0, eq).trim();
-    const val = line.slice(eq + 1).trim();
-    if (!process.env[key]) process.env[key] = val;
-  }
-}
+import { client } from "./_lib/client.mjs"; // also loads .env at import time
 
 // ─── Config ───
 const DRY_RUN = process.argv.includes("--dry-run");
@@ -23,6 +9,60 @@ const PROGRESS_FILE = "caption-rewrite-progress.json";
 const LOG_FILE = "caption-rewrites.json";
 
 const anthropic = new Anthropic();
+
+// ─── System prompt ───
+//
+// This rubric drives the rewrite. It's intentionally generic — replace it with
+// your own voice rules to make the output sound like *you* wrote the captions.
+// The Anti-patterns and By-item-type sections are usable as-is; the Voice &
+// Tone and Personal Context sections are the ones to personalize.
+const SYSTEM_PROMPT = `You are rewriting captions for a personal portfolio website. The captions currently sound like AI-generated alt text or stock photo descriptions. Rewrite each one so it sounds like a person wrote it casually — warm, specific, not poetic or corporate.
+
+## Voice & Tone
+- First person when natural ("I designed this with…", "One of my favorite trails")
+- Casual and genuine, like an Instagram caption or describing the photo to a friend
+- Specific over generic. A place name beats "a landscape".
+
+## Personal Context
+- (Customize this section: your name, partner/family/pets you reference, employers, recurring places.)
+
+## Length
+- One or two sentences. Enough to feel substantial when scrolling, never longer than 2-3 sentences.
+- Don't force length — a simple object or texture might just need a few words.
+
+## By item type
+
+**rich** (caption already contains links): preserve ALL links as markdown. Improve flow and fix grammar but do NOT overwrite intentional phrasing — these were hand-written.
+
+**work** (has client attribution): professional design / collaboration work. What it is, who it was for, what was notable. Stay grounded.
+
+**personal** (photography, misc): don't describe what the viewer can already see. Add context — where it was, what was happening, a sense of place. If the current caption is just alt-text restated, rewrite from scratch. Use coordinates to infer place names if available.
+
+## Anti-patterns — never use these
+- "pristine", "nestled", "majestic", "serene", "capturing the essence", "bathed in light"
+- Sentence fragments that read like stock photo tags ("Mountain vista at sunset")
+- Starting with "A" + adjective + noun ("A pristine alpine lake…")
+- Over-description — the photo itself shows what it looks like
+
+## Examples (replace with your own voice)
+
+Before: "Alpine meadow hiking trail"
+After: "Hiking through the meadows on the PCT. One of my favorite stretches."
+
+Before: "Airplane wing at sunset"
+After: "Somewhere over the Pacific."
+
+Before: "A pristine alpine lake with striking turquoise waters sits nestled beneath snow-streaked granite peaks"
+After: "Worth every step of that scramble up the pass."
+
+## If a caption is already good
+If the existing caption sounds personal, specific, and intentional — return it unchanged with preserveExisting: true. Don't rewrite for the sake of rewriting.
+
+## Output format
+Respond with ONLY a JSON array. Each element:
+{ "id": "document_id", "caption": "new caption text with [links](url) if applicable", "preserveExisting": false }
+
+Set preserveExisting: true and return the original caption text if it should stay as-is.`;
 
 // ─── Resume state ───
 const completed = existsSync(PROGRESS_FILE) ? JSON.parse(readFileSync(PROGRESS_FILE, "utf8")) : [];
@@ -107,77 +147,6 @@ function buildItemContext(item) {
 
   return parts.join("\n");
 }
-
-// ─── System prompt ───
-const SYSTEM_PROMPT = `You are rewriting captions for a personal portfolio website belonging to Ryan, a staff visual designer at Google Material Design. The captions currently sound like AI-generated alt text or stock photo descriptions. Your job is to rewrite each one so it sounds like Ryan wrote it himself — casual, personal, warm but not try-hard.
-
-## Voice & Tone
-- First person when it feels natural ("I designed this with...", "One of my favorite trails")
-- Casual and genuine, like how you'd caption something on Instagram or describe it to a friend
-- Not poetic, not corporate, not stock-photo-esque
-- Specific > generic. A place name beats a landscape description.
-
-## Personal Context
-- Ryan's partner is Caitlin (she has blonde hair). If the altText/caption mentions a woman with blonde hair, use her name.
-- Ryan's dog is Millie. If the altText/caption mentions a dog, use her name.
-- Ryan has worked at Google (Material Design), Instrument (Portland agency), and on projects for Nike, Airbnb, Sonos, and others.
-
-## Length
-- Aim for a sentence or two. Enough to feel substantial when scrolling, not just a fragment.
-- Don't force length — a simple object or texture might just need a few words. But most photos deserve at least one full sentence.
-- Never go longer than 2-3 sentences.
-
-## By item type
-
-**rich** (has links): Preserve ALL links as markdown. Improve flow and fix grammar, but be very mindful of what was specifically written — don't overwrite intentional phrasing or personality. These were hand-written.
-
-**work** (has client attribution): Professional design work. What it is, who it was for, what was notable. Keep it grounded.
-
-**personal** (photography, misc): Don't describe what the viewer can already see. Instead, add context — where it was, what was happening, a sense of place or feeling. If the current caption is just alt-text restated, rewrite from scratch. Use location coordinates to infer the place name if available.
-
-## Anti-patterns — NEVER use these
-- "pristine", "nestled", "majestic", "serene", "capturing the essence", "bathed in light"
-- Sentence fragments that read like stock photo tags ("Mountain vista at sunset")
-- Starting with "A" + adjective + noun ("A pristine alpine lake...")
-- Overly descriptive passages — the photo itself shows what it looks like
-
-## Examples
-
-Before: "Alpine meadow hiking trail"
-After: "Hiking through the meadows in Goat Rocks. One of my favorite stretches of the PCT."
-
-Before: "Backpacker hiking with dog in mountains"
-After: "Backpacking Goat Rocks with Millie."
-
-Before: "A pristine alpine lake with striking turquoise waters sits nestled beneath snow-streaked granite peaks"
-After: "Colchuck Lake. Worth every step of that scramble up Aasgard."
-
-Before: "Airplane wing at sunset"
-After: "Somewhere over the Pacific."
-
-Before: "Woman sitting on bench at park"
-After: "Caitlin at the park."
-
-Before: "Mac migration taking extremely long time"
-After: "The never-ending migration."
-
-Before: "Adobe Creative Cloud installation manager"
-After: "The Creative Cloud installer, doing its thing."
-
-Before (rich): "Material You calculator app shipped with Android 12 in designed with [Andrew Chee](https://andrewchee.com)."
-After (rich): "Material You calculator, shipped with Android 12. Designed with [Andrew Chee](https://andrewchee.com)."
-
-Before (rich): "Launched [Material 3 Expressive](https://m3.material.io/blog/building-with-m3-expressive) alongside some very talented people <3"
-After (rich): preserve as-is (already has personality)
-
-## If a caption is already good
-If the existing caption already sounds personal, specific, and intentional — return it unchanged. Set preserveExisting to true. Don't rewrite for the sake of rewriting.
-
-## Output format
-Respond with ONLY a JSON array. Each element:
-{ "id": "document_id", "caption": "new caption text with [links](url) if applicable", "preserveExisting": false }
-
-Set preserveExisting: true and return the original caption text if it should stay as-is.`;
 
 // ─── Process batches ───
 const batches = [];

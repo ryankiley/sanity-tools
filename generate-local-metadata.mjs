@@ -1,26 +1,42 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
-import { join, extname, dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { join, extname } from "path";
 import exifr from "exifr";
 import sharp from "sharp";
 import Anthropic from "@anthropic-ai/sdk";
-
-// Load .env for ANTHROPIC_API_KEY from the repo root (same level as this script).
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, ".env");
-if (existsSync(envPath)) {
-  const envLines = readFileSync(envPath, "utf8").split("\n");
-  for (const line of envLines) {
-    const [key, ...rest] = line.split("=");
-    if (key && rest.length) process.env[key.trim()] = rest.join("=").trim();
-  }
-}
+import "./_lib/client.mjs"; // side-effect import: loads .env so ANTHROPIC_API_KEY reaches the SDK
 
 const anthropic = new Anthropic();
+
+// ─── Edit before running ──────────────────────────────────────────────
+//
+// LOCAL_DIR holds the image files. CURATION_FILE narrows the upload list:
+//
+// { "dropped": [{ "filename": "_DSC1234.jpg" }, ...] }
+//
+// Anything in LOCAL_DIR that isn't in `dropped` is processed. Output is
+// written to OUTPUT_FILE as an array of metadata objects, ready to feed
+// into upload-metadata.mjs.
+//
+// CATEGORIES and TAGS below are the values Claude is allowed to choose
+// from. Replace them with your own Sanity taxonomy (must match the
+// CATEGORY_IDS / TAG_IDS maps in upload-metadata.mjs for the upload step
+// to find a doc ref).
 
 const LOCAL_DIR = process.env.HOME + "/Desktop/export";
 const CURATION_FILE = join(LOCAL_DIR, "curation.json");
 const OUTPUT_FILE = join(LOCAL_DIR, "metadata.json");
+
+const CATEGORIES = ["photography", "design", "music"];
+const TAGS = [
+  "Architecture",
+  "Concert",
+  "Installation",
+  "Landscape",
+  "Product Design",
+  "Typography",
+];
+
+// ──────────────────────────────────────────────────────────────────────
 
 // Load dropped filenames
 const curation = JSON.parse(readFileSync(CURATION_FILE, "utf8"));
@@ -104,13 +120,11 @@ for (const filename of todo) {
             {
               type: "text",
               text: `Analyze this photo and respond with ONLY valid JSON (no markdown, no backticks):
-{"title": "Short title 2-6 words", "altText": "Detailed description for screen readers, 1-2 sentences", "caption": "Brief 3-7 word caption", "category": "photography", "tags": []}
+{"title": "Short title 2-6 words", "altText": "Detailed description for screen readers, 1-2 sentences", "caption": "Brief 3-7 word caption", "category": "${CATEGORIES[0]}", "tags": []}
 
-For category, pick ONE: "photography" (default for landscapes, nature, travel, life moments), "design" (architecture, interior design, typography, objects, products, furniture), or "music" (concerts, live performances).
+For category, pick ONE from: ${CATEGORIES.map((c) => `"${c}"`).join(", ")}.
 
-For tags, pick any that apply from this exact list: "Architecture", "Concert", "Installation", "Landscape", "Product Design", "Typography". Leave empty [] if none fit well.
-
-If the image shows a house number or address, include it in the title.`,
+For tags, pick any that apply from this exact list: ${TAGS.map((t) => `"${t}"`).join(", ")}. Leave empty [] if none fit well.`,
             },
           ],
         },
@@ -133,9 +147,9 @@ If the image shows a house number or address, include it in the title.`,
     const entry = {
       filename,
       title: meta.title || "Untitled",
-      altText: meta.altText || "Portfolio image",
+      altText: meta.altText || "",
       caption: meta.caption || "",
-      category: meta.category || "photography",
+      category: meta.category || CATEGORIES[0],
       tags: meta.tags || [],
       date: dateStr,
       gps,

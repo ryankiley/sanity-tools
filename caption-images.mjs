@@ -1,22 +1,5 @@
-import { readFileSync, existsSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
 import Anthropic from "@anthropic-ai/sdk";
-import { client } from "./_lib/client.mjs";
-
-// Load .env from the repo root so ANTHROPIC_API_KEY reaches the SDK.
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, ".env");
-if (existsSync(envPath)) {
-  for (const line of readFileSync(envPath, "utf8").split("\n")) {
-    const eq = line.indexOf("=");
-    if (eq > 0) {
-      const key = line.slice(0, eq).trim();
-      const val = line.slice(eq + 1).trim();
-      if (!process.env[key]) process.env[key] = val;
-    }
-  }
-}
+import { client } from "./_lib/client.mjs"; // also loads .env at import time
 
 const anthropic = new Anthropic();
 
@@ -53,7 +36,7 @@ for (const item of items) {
             },
             {
               type: "text",
-              text: `Write a very short caption for this photo. 3-7 words max. Plain, descriptive, no poetry or metaphors. Like a photo album label. Examples: "Portland fog", "Crater Lake at dusk", "Brooklyn Bridge", "Concert crowd", "Alpine wildflowers". Just the caption, nothing else.`,
+              text: `Write a very short caption for this photo. 3-7 words max. Plain, descriptive, no poetry or metaphors — like a photo album label. Examples: "Morning fog over the bay", "Lake at dusk", "Concert crowd", "Alpine wildflowers", "Empty parking lot". Just the caption, nothing else.`,
             },
           ],
         },

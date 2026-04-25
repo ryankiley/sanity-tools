@@ -3,12 +3,23 @@ import { join, basename, extname } from "path";
 import pLimit from "p-limit";
 import { client } from "./_lib/client.mjs";
 
-const DIR = process.env.HOME + "/Desktop/Goat Rocks Wilderness WA";
-const PHOTOGRAPHY_CAT = "Ptdpyhb5YlpWpmyfLFYehK";
-const LANDSCAPE_TAG = "0289cc25-446d-48fe-8bd6-595954b6a543";
+// ─── Edit before running ──────────────────────────────────────────────
+//
+// All four constants are placeholders. Replace with values that match
+// your Sanity dataset and the folder you want to upload from. The
+// category and tag refs must already exist in Sanity — query them
+// with `*[_type == "category"]{_id, title}` etc. and paste the _id.
 
-// Goat Rocks Wilderness, WA
-const GEO = { _type: "geopoint", lat: 46.49, lng: -121.49 };
+const DIR = process.env.HOME + "/Desktop/example-folder";
+const CATEGORY_REF = "REPLACE_WITH_CATEGORY_DOC_ID";
+const TAG_REF = "REPLACE_WITH_TAG_DOC_ID";
+// Optional: a geopoint applied to every uploaded image. Set to null to skip.
+const GEO = null; // e.g. { _type: "geopoint", lat: 46.49, lng: -121.49 }
+
+const TITLE_PREFIX = ""; // optional prefix prepended to each filename-derived title
+const ALT_TEXT = "";    // applied to every image — keep generic or empty
+
+// ──────────────────────────────────────────────────────────────────────
 
 // Sanity defaults `lqip` + `palette`; explicit `location` + `exif` pick up
 // GPS and camera metadata from the JPEG header at upload time.
@@ -21,7 +32,7 @@ const files = readdirSync(DIR).filter((f) => {
   return [".jpg", ".jpeg", ".png", ".webp"].includes(ext);
 });
 
-console.log(`Uploading ${files.length} images from Goat Rocks Wilderness WA...\n`);
+console.log(`Uploading ${files.length} images from ${DIR}...\n`);
 
 let success = 0;
 
@@ -37,21 +48,24 @@ const tasks = files.map((file) =>
         extract: EXTRACT,
       });
 
-      await client.create({
+      const doc = {
         _type: "media",
-        title: `Goat Rocks ${name}`,
+        title: TITLE_PREFIX ? `${TITLE_PREFIX} ${name}` : name,
         mediaType: "image",
-        altText: "Goat Rocks Wilderness, Washington",
+        altText: ALT_TEXT,
         image: {
           _type: "image",
           asset: { _type: "reference", _ref: asset._id },
         },
-        categories: [{ _type: "reference", _ref: PHOTOGRAPHY_CAT, _key: "photography" }],
-        tags: [{ _type: "reference", _ref: LANDSCAPE_TAG, _key: "landscape" }],
-        location: GEO,
+        categories: [{ _type: "reference", _ref: CATEGORY_REF, _key: "category" }],
+        tags: [{ _type: "reference", _ref: TAG_REF, _key: "tag" }],
         featured: false,
         hidden: false,
-      });
+      };
+
+      if (GEO) doc.location = GEO;
+
+      await client.create(doc);
 
       success++;
       console.log(`  [${success}/${files.length}] ${file}`);

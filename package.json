@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Local batch tooling for the ryankiley.com Sanity dataset: bulk uploads + AI-powered metadata generation.",
+  "description": "Batch tooling for a Sanity dataset: bulk image uploads + Claude-powered metadata generation.",
   "engines": {
     "node": ">=20"
   },

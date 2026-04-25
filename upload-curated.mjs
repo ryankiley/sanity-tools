@@ -4,8 +4,32 @@ import exifr from "exifr";
 import pLimit from "p-limit";
 import { client } from "./_lib/client.mjs";
 
-const EXPORT_DIR = process.env.HOME + "/Desktop/2025-export";
+// ─── Edit before running ──────────────────────────────────────────────
+//
+// EXPORT_DIR holds the image files. CURATION_FILE describes which ones
+// to upload and what metadata to attach. Expected curation.json shape:
+//
+// {
+//   "keepers": [
+//     {
+//       "filename": "_DSC1234.jpg",
+//       "title": "Short title",
+//       "altText": "Detailed alt text for screen readers",
+//       "caption": "Brief caption shown on the site",
+//       "folder": "optional-folder-grouping"   // used by your own
+//                                              // routing rules below
+//     }
+//     // …
+//   ]
+// }
+//
+// EXIF (date + GPS) is read from each file at upload time. Add or
+// remove your own grouping rules in the `categories` block.
+
+const EXPORT_DIR = process.env.HOME + "/Desktop/export";
 const CURATION_FILE = join(EXPORT_DIR, "curation.json");
+
+// ──────────────────────────────────────────────────────────────────────
 
 // Sanity defaults `lqip` + `palette`; explicit `location` + `exif` pick up
 // GPS and camera metadata from the JPEG header at upload time.
@@ -50,13 +74,13 @@ async function run() {
   const curation = JSON.parse(readFileSync(CURATION_FILE, "utf8"));
   const keepers = curation.keepers;
 
-  console.log(`\n=== Upload 2025-export: ${keepers.length} keepers ===\n`);
+  console.log(`\n=== Upload: ${keepers.length} keepers ===\n`);
 
-  // Pre-resolve categories
-  const photoCatId = await findOrCreateCategory("photography");
-  const musicCatId = await findOrCreateCategory("music");
-  console.log(`  Photography: ${photoCatId}`);
-  console.log(`  Music: ${musicCatId}\n`);
+  // Pre-resolve the default category. Add more here if your curation.json
+  // assigns documents to multiple categories — the keeper.folder field
+  // (or any other field you add) is yours to route on.
+  const defaultCatId = await findOrCreateCategory("photography");
+  console.log(`  Default category: ${defaultCatId}\n`);
 
   let uploaded = 0;
   let failed = 0;
@@ -66,7 +90,6 @@ async function run() {
       const filePath = join(EXPORT_DIR, keeper.filename);
 
       try {
-        // Read file
         const imageBuffer = readFileSync(filePath);
 
         // Extract EXIF date
@@ -87,23 +110,13 @@ async function run() {
           extract: EXTRACT,
         });
 
-        // Determine categories
         const categories = [
           {
             _type: "reference",
-            _ref: photoCatId,
-            _key: "photography",
+            _ref: defaultCatId,
+            _key: "default",
           },
         ];
-
-        // Add music category for NIN images
-        if (keeper.folder && keeper.folder.includes("NIN")) {
-          categories.push({
-            _type: "reference",
-            _ref: musicCatId,
-            _key: "music",
-          });
-        }
 
         // Build document
         const doc = {
