@@ -9,7 +9,6 @@
     "deploy": "sanity deploy"
   },
   "dependencies": {
-    "@sanity/assist": "^6.0.4",
     "@sanity/vision": "^5.22.0",
     "exifr": "^7.1.3",
     "p-limit": "^7.3.0",
