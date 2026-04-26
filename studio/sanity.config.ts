@@ -2,11 +2,8 @@ import { defineConfig, isDev } from "sanity";
 import { structureTool } from "sanity/structure";
 import { presentationTool } from "sanity/presentation";
 import { visionTool } from "@sanity/vision";
-import { assist } from "@sanity/assist";
-import { useMemo } from "react";
 import { schemaTypes } from "./schemas";
 import { structure, defaultDocumentNode } from "./structure";
-import { useDescribeImage } from "./actions/describeImage";
 
 // Preview URL — local dev by default; prod is set via
 // SANITY_STUDIO_PREVIEW_URL env at build/deploy time.
@@ -32,17 +29,6 @@ export default defineConfig({
     // Vision (GROQ playground) is a dev-time aid — hide in deployed
     // Studio so editors don't see a cryptic GROQ tab.
     ...(isDev ? [visionTool({ defaultApiVersion: "2026-04-09" })] : []),
-    assist({
-      fieldActions: {
-        title: "AI Actions",
-        useFieldActions: (props) => {
-          const describeImage = useDescribeImage(props);
-          return useMemo(() => {
-            return [describeImage].filter(Boolean);
-          }, [describeImage]);
-        },
-      },
-    }),
   ],
   schema: {
     types: schemaTypes,
