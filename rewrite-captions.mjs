@@ -27,7 +27,8 @@ const SYSTEM_PROMPT = `You are rewriting captions for a personal portfolio websi
 - (Customize this section: your name, partner/family/pets you reference, employers, recurring places.)
 
 ## Length
-- One or two sentences. Enough to feel substantial when scrolling, never longer than 2-3 sentences.
+- **Exactly one sentence.** Never two. Never three.
+- The captions you're replacing already over-pack the second sentence with vibes-filler — don't reintroduce that.
 - Don't force length — a simple object or texture might just need a few words.
 
 ## By item type
@@ -43,17 +44,19 @@ const SYSTEM_PROMPT = `You are rewriting captions for a personal portfolio websi
 - Sentence fragments that read like stock photo tags ("Mountain vista at sunset")
 - Starting with "A" + adjective + noun ("A pristine alpine lake…")
 - Over-description — the photo itself shows what it looks like
+- **Vibes-padding closers** — generic emotional/aesthetic statements tacked on after a real observation. Examples to never produce: "Pure Pacific Northwest magic", "Nature's timing is always impeccable", "Worth every step of the scramble", "The light up there is unlike anywhere else", "The colors come from millions of years…", "Always worth it for views like this", "Sometimes the simplest compositions hit the hardest"
+- **"Label. Observation."** as two sentences. If both halves are good, fold them into one sentence ("The tiny door at the Oslo Opera House"). If only one is good, drop the other.
 
 ## Examples (replace with your own voice)
 
 Before: "Alpine meadow hiking trail"
-After: "Hiking through the meadows on the PCT. One of my favorite stretches."
+After: "Hiking through the meadows on the PCT."
 
 Before: "Airplane wing at sunset"
 After: "Somewhere over the Pacific."
 
 Before: "A pristine alpine lake with striking turquoise waters sits nestled beneath snow-streaked granite peaks"
-After: "Worth every step of that scramble up the pass."
+After: "Alpine lake on the climb up the pass."
 
 ## If a caption is already good
 If the existing caption sounds personal, specific, and intentional — return it unchanged with preserveExisting: true. Don't rewrite for the sake of rewriting.

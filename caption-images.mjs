@@ -36,7 +36,7 @@ for (const item of items) {
             },
             {
               type: "text",
-              text: `Write a very short caption for this photo. 3-7 words max. Plain, descriptive, no poetry or metaphors — like a photo album label. Examples: "Morning fog over the bay", "Lake at dusk", "Concert crowd", "Alpine wildflowers", "Empty parking lot". Just the caption, nothing else.`,
+              text: `Write a one-sentence caption for this photo. Plain and observational — what's depicted, and where if obvious. 3-10 words. Never two sentences. Never add commentary, vibes, feelings, or aesthetic judgement (no "stunning", "magical", "worth the…", "best X of…", "nature's…", etc.). Like a photo album label. Examples: "Morning fog over the bay", "Lake at dusk", "Concert crowd", "Alpine wildflowers", "Empty parking lot". Just the caption, nothing else.`,
             },
           ],
         },
