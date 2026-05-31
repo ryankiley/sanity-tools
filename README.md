@@ -1,5 +1,7 @@
 # sanity-tools
 
+![Sanity v5](https://img.shields.io/badge/Sanity-v5-F03E2F?style=flat-square&logo=sanity&logoColor=white) ![Node 20+](https://img.shields.io/badge/Node-20%2B-339933?style=flat-square&logo=node.js&logoColor=white) ![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
+
 Sanity Studio + batch tooling for a [Sanity](https://www.sanity.io) dataset. The Studio under `studio/` is a real Sanity Studio app (deployed to sanity.studio); the scripts at the root are local-only batch tools (bulk image uploads, Claude-powered metadata generation). Built for a portfolio site running a `media` schema with `category` / `tag` references, but easy to adapt.
 
 ## Setup
