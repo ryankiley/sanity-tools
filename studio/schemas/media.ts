@@ -76,6 +76,34 @@ export default defineType({
       description: "Drag and drop a video file",
       hidden: ({ document }) => document?.mediaType !== "video",
     },
+    // Pixel dimensions of the uploaded `video` file. Sanity's file asset
+    // carries no width/height (unlike image assets), so the frontend can't
+    // reserve the right box before `loadedmetadata` — portrait videos lay
+    // out at 300×150 and then grow, which is a CLS hit above the fold.
+    // Populated by `backfill-video-dimensions.mjs` (ffprobe, rotation-aware);
+    // left editable so a wrong probe can be corrected by hand.
+    {
+      name: "videoWidth",
+      title: "Video Width (px)",
+      type: "number",
+      group: "content",
+      description:
+        "Populated by the backfill script from the uploaded file. Used to reserve layout before the video loads.",
+      hidden: ({ document }) =>
+        document?.mediaType !== "video" || !(document?.video as { asset?: unknown } | undefined)?.asset,
+      validation: (rule) => rule.integer().positive(),
+    },
+    {
+      name: "videoHeight",
+      title: "Video Height (px)",
+      type: "number",
+      group: "content",
+      description:
+        "Populated by the backfill script from the uploaded file. Used to reserve layout before the video loads.",
+      hidden: ({ document }) =>
+        document?.mediaType !== "video" || !(document?.video as { asset?: unknown } | undefined)?.asset,
+      validation: (rule) => rule.integer().positive(),
+    },
     {
       name: "videoUrl",
       title: "External Video URL",

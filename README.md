@@ -92,6 +92,15 @@ Edit `CATEGORY_IDS` and `TAG_IDS` maps at the top of the file before running so 
 node upload-metadata.mjs
 ```
 
+### `backfill-video-dimensions.mjs`
+
+Give self-hosted video docs their pixel dimensions. Sanity file assets carry no width/height (image assets do), so without these the frontend can't reserve the right box before `loadedmetadata`. Probes each published `media` doc's `video` asset with `ffprobe` (rotation-aware: a 90/270 rotate swaps width and height) and patches `videoWidth` / `videoHeight` only where missing or different. Never touches drafts or any other field. Needs `ffprobe` on `PATH` (or `FFPROBE=/path/to/ffprobe`).
+
+```bash
+node backfill-video-dimensions.mjs           # dry run, prints a table
+node backfill-video-dimensions.mjs --apply   # write
+```
+
 ## Studio
 
 `studio/` is a Sanity Studio (React app) — schema definitions, custom structure, field actions, custom previews. Deployed to sanity.studio via `cd studio && sanity deploy`. Independent `package.json` — install separately:
